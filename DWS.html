@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Webhook Sender</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #5865F2;
+            --primary-dark: #4752C4;
+            --secondary: #2C2F33;
+            --dark: #23272A;
+            --light: #FFFFFF;
+            --success: #57F287;
+            --warning: #FEE75C;
+            --danger: #ED4245;
+            --gray: #99AAB5;
+            --gray-dark: #4F545C;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+            background-image: radial-gradient(circle at 20% 30%, rgba(88, 101, 242, 0.1) 0%, transparent 20%), 
+                              radial-gradient(circle at 80% 70%, rgba(237, 66, 69, 0.1) 0%, transparent 20%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--gray-dark);
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        h1 i {
+            color: var(--success);
+        }
+
+        .subtitle {
+            color: var(--gray);
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background-color: var(--secondary);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .panel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .panel-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--gray-dark);
+        }
+
+        .panel-title i {
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--gray);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--dark);
+            border: 2px solid var(--gray-dark);
+            border-radius: 8px;
+            color: var(--light);
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: monospace;
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-with-icon i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .input-with-icon input {
+            padding-left: 45px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-group input {
+            width: auto;
+            margin-right: 10px;
+        }
+
+        .checkbox-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+
+        .color-picker {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .color-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 2px solid var(--gray-dark);
+        }
+
+        .color-input {
+            flex: 1;
+        }
+
+        .inline-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .button-success {
+            background-color: var(--success);
+        }
+
+        .button-success:hover {
+            background-color: #43b581;
+        }
+
+        .button-danger {
+            background-color: var(--danger);
+        }
+
+        .button-danger:hover {
+            background-color: #c03939;
+        }
+
+        .buttons-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .preview-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-content {
+            flex: 1;
+            background-color: var(--dark);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-y: auto;
+            min-height: 300px;
+            border: 1px solid var(--gray-dark);
+        }
+
+        .message-preview {
+            background-color: #2F3136;
+            border-radius: 8px;
+            padding: 15px;
+            max-width: 90%;
+            margin-bottom: 15px;
+            position: relative;
+            border-left: 4px solid var(--primary);
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .author {
+            font-weight: 600;
+            color: var(--light);
+        }
+
+        .timestamp {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-left: 10px;
+        }
+
+        .message-body {
+            color: #DCDDDE;
+            line-height: 1.5;
+        }
+
+        .embed-preview {
+            background-color: #2F3136;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            border-left: 4px solid #F1C40F;
+        }
+
+        .embed-color-bar {
+            height: 5px;
+            border-radius: 3px;
+            margin-bottom: 10px;
+        }
+
+        .embed-title {
+            font-weight: 600;
+            color: #FFFFFF;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .embed-description {
+            color: #DCDDDE;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .embed-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .embed-field {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        .embed-field-title {
+            font-weight: 600;
+            color: #FFFFFF;
+            margin-bottom: 4px;
+        }
+
+        .embed-field-value {
+            color: #DCDDDE;
+            font-size: 0.9rem;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--gray-dark);
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .status-message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+
+        .status-success {
+            background-color: rgba(87, 242, 135, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+            display: block;
+        }
+
+        .status-error {
+            background-color: rgba(237, 66, 69, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            display: block;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .slider-value {
+            min-width: 40px;
+            text-align: center;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            background: var(--dark);
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+        }
+
+        .avatar-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .avatar-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+
+        .avatar-option:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .avatar-option.selected {
+            background-color: rgba(88, 101, 242, 0.2);
+            border: 2px solid var(--primary);
+        }
+
+        .avatar-option-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--gray-dark);
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            color: var(--gray);
+            font-weight: 600;
+            transition: color 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            color: var(--light);
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fab fa-discord"></i> Discord Webhook Sender</h1>
+            <p class="subtitle">Мощный инструмент для отправки сообщений в Discord через вебхук. Настройте внешний вид сообщения, добавьте вложения, эмбеды и многое другое.</p>
+        </header>
+
+        <div class="main-content">
+            <div class="panel">
+                <div class="tabs">
+                    <div class="tab active" data-tab="basic">Основные настройки</div>
+                    <div class="tab" data-tab="embed">Эмбед настройки</div>
+                    <div class="tab" data-tab="advanced">Дополнительно</div>
+                </div>
+
+                <div id="basic" class="tab-content active">
+                    <div class="form-group">
+                        <label for="webhookUrl"><i class="fas fa-link"></i> Webhook URL</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-key"></i>
+                            <input type="text" id="webhookUrl" placeholder="https://discord.com/api/webhooks/...">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="messageContent"><i class="fas fa-comment-alt"></i> Текст сообщения</label>
+                        <textarea id="messageContent" placeholder="Введите текст сообщения..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Настройки отправителя</label>
+                        <div class="inline-group">
+                            <div>
+                                <label for="username">Имя пользователя</label>
+                                <input type="text" id="username" placeholder="Webhook Bot" value="Webhook Bot">
+                            </div>
+                            <div>
+                                <label for="avatarUrl">URL аватара</label>
+                                <input type="text" id="avatarUrl" placeholder="https://example.com/avatar.png">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-image"></i> Быстрый выбор аватара</label>
+                        <div class="avatar-options">
+                            <div class="avatar-option selected" data-avatar="https://cdn.discordapp.com/embed/avatars/0.png">
+                                <img src="https://cdn.discordapp.com/embed/avatars/0.png" class="avatar-option-img" alt="Blue Avatar">
+                                <span>Синий</span>
+                            </div>
+                            <div class="avatar-option" data-avatar="https://cdn.discordapp.com/embed/avatars/1.png">
+                                <img src="https://cdn.discordapp.com/embed/avatars/1.png" class="avatar-option-img" alt="Gray Avatar">
+                                <span>Серый</span>
+                            </div>
+                            <div class="avatar-option" data-avatar="https://cdn.discordapp.com/embed/avatars/2.png">
+                                <img src="https://cdn.discordapp.com/embed/avatars/2.png" class="avatar-option-img" alt="Green Avatar">
+                                <span>Зелёный</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="embed" class="tab-content">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableEmbed" checked>
+                        <label for="enableEmbed">Включить эмбед в сообщении</label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="embedTitle">Заголовок эмбеда</label>
+                        <input type="text" id="embedTitle" placeholder="Заголовок эмбеда" value="Пример эмбеда">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="embedDescription">Описание эмбеда</label>
+                        <textarea id="embedDescription" placeholder="Описание эмбеда...">Это пример эмбеда, отправленного через Discord Webhook Sender. Вы можете настроить его внешний вид с помощью параметров ниже.</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="embedColor">Цвет эмбеда</label>
+                        <div class="color-picker">
+                            <div class="color-preview" id="colorPreview" style="background-color: #F1C40F;"></div>
+                            <div class="color-input">
+                                <input type="text" id="embedColor" placeholder="#F1C40F" value="#F1C40F">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="embedUrl">URL эмбеда (клик по заголовку)</label>
+                        <input type="text" id="embedUrl" placeholder="https://example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Поля эмбеда</label>
+                        <div class="inline-group">
+                            <div>
+                                <label for="field1Name">Название поля 1</label>
+                                <input type="text" id="field1Name" placeholder="Статус">
+                            </div>
+                            <div>
+                                <label for="field1Value">Значение поля 1</label>
+                                <input type="text" id="field1Value" placeholder="Работает">
+                            </div>
+                        </div>
+                        <div class="inline-group">
+                            <div>
+                                <label for="field2Name">Название поля 2</label>
+                                <input type="text" id="field2Name" placeholder="Версия">
+                            </div>
+                            <div>
+                                <label for="field2Value">Значение поля 2</label>
+                                <input type="text" id="field2Value" placeholder="1.0.0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="embedFooter">Футер эмбеда</label>
+                        <input type="text" id="embedFooter" placeholder="Текст футера">
+                    </div>
+                </div>
+
+                <div id="advanced" class="tab-content">
+                    <div class="form-group">
+                        <label><i class="fas fa-cogs"></i> Дополнительные параметры</label>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="tts">
+                            <label for="tts">TTS (Text-to-Speech) сообщение</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enableTimestamp">
+                            <label for="enableTimestamp">Добавить метку времени</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="disableMentions">
+                            <label for="disableMentions">Отключить упоминания</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="delay"><i class="fas fa-clock"></i> Задержка отправки (секунды)</label>
+                        <div class="slider-container">
+                            <input type="range" min="0" max="30" value="0" class="slider" id="delay">
+                            <span class="slider-value" id="delayValue">0</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="messageRepeat"><i class="fas fa-redo"></i> Количество повторений</label>
+                        <div class="slider-container">
+                            <input type="range" min="1" max="10" value="1" class="slider" id="messageRepeat">
+                            <span class="slider-value" id="repeatValue">1</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rateLimit"><i class="fas fa-tachometer-alt"></i> Лимит запросов (секунд между запросами)</label>
+                        <div class="slider-container">
+                            <input type="range" min="0" max="10" value="1" class="slider" id="rateLimit">
+                            <span class="slider-value" id="rateLimitValue">1</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="buttons-group">
+                    <button class="button button-success" id="sendButton">
+                        <i class="fas fa-paper-plane"></i> Отправить сообщение
+                    </button>
+                    <button class="button button-danger" id="testButton">
+                        <i class="fas fa-vial"></i> Протестировать вебхук
+                    </button>
+                </div>
+
+                <div class="status-message" id="statusMessage"></div>
+            </div>
+
+            <div class="panel preview-panel">
+                <h2 class="panel-title"><i class="fas fa-eye"></i> Предпросмотр сообщения</h2>
+                <div class="preview-content" id="previewContent">
+                    <!-- Preview will be generated here -->
+                </div>
+                <div class="buttons-group">
+                    <button class="button" id="updatePreview">
+                        <i class="fas fa-sync-alt"></i> Обновить предпросмотр
+                    </button>
+                    <button class="button" id="clearButton">
+                        <i class="fas fa-trash"></i> Очистить всё
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Discord Webhook Sender • Создано с <i class="fas fa-heart" style="color: #ED4245;"></i> для Discord сообщества</p>
+            <p>Вставьте URL вебхука для начала отправки сообщений. Убедитесь, что у вас есть права на отправку сообщений в выбранный канал.</p>
+        </div>
+    </div>
+
+    <script>
+        // DOM элементы
+        const webhookUrlInput = document.getElementById('webhookUrl');
+        const messageContentInput = document.getElementById('messageContent');
+        const usernameInput = document.getElementById('username');
+        const avatarUrlInput = document.getElementById('avatarUrl');
+        const avatarOptions = document.querySelectorAll('.avatar-option');
+        const enableEmbedCheckbox = document.getElementById('enableEmbed');
+        const embedTitleInput = document.getElementById('embedTitle');
+        const embedDescriptionInput = document.getElementById('embedDescription');
+        const embedColorInput = document.getElementById('embedColor');
+        const embedUrlInput = document.getElementById('embedUrl');
+        const embedFooterInput = document.getElementById('embedFooter');
+        const colorPreview = document.getElementById('colorPreview');
+        const sendButton = document.getElementById('sendButton');
+        const testButton = document.getElementById('testButton');
+        const updatePreviewButton = document.getElementById('updatePreview');
+        const clearButton = document.getElementById('clearButton');
+        const statusMessage = document.getElementById('statusMessage');
+        const previewContent = document.getElementById('previewContent');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const delaySlider = document.getElementById('delay');
+        const delayValue = document.getElementById('delayValue');
+        const repeatSlider = document.getElementById('messageRepeat');
+        const repeatValue = document.getElementById('repeatValue');
+        const rateLimitSlider = document.getElementById('rateLimit');
+        const rateLimitValue = document.getElementById('rateLimitValue');
+
+        // Поля для эмбедов
+        const field1Name = document.getElementById('field1Name');
+        const field1Value = document.getElementById('field1Value');
+        const field2Name = document.getElementById('field2Name');
+        const field2Value = document.getElementById('field2Value');
+
+        // Дополнительные параметры
+        const ttsCheckbox = document.getElementById('tts');
+        const enableTimestampCheckbox = document.getElementById('enableTimestamp');
+        const disableMentionsCheckbox = document.getElementById('disableMentions');
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            // Установка значений по умолчанию
+            updateColorPreview();
+            updatePreview();
+            
+            // Пример вебхука (только для демонстрации)
+            webhookUrlInput.value = 'https://discord.com/api/webhooks/1234567890/abcdefghijk';
+            
+            // Обновление слайдеров
+            updateSliderValues();
+        });
+
+        // Обработчики событий для слайдеров
+        delaySlider.addEventListener('input', function() {
+            delayValue.textContent = this.value;
+        });
+
+        repeatSlider.addEventListener('input', function() {
+            repeatValue.textContent = this.value;
+        });
+
+        rateLimitSlider.addEventListener('input', function() {
+            rateLimitValue.textContent = this.value;
+        });
+
+        function updateSliderValues() {
+            delayValue.textContent = delaySlider.value;
+            repeatValue.textContent = repeatSlider.value;
+            rateLimitValue.textContent = rateLimitSlider.value;
+        }
+
+        // Выбор аватара
+        avatarOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                avatarOptions.forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                const avatarUrl = this.getAttribute('data-avatar');
+                avatarUrlInput.value = avatarUrl;
+                updatePreview();
+            });
+        });
+
+        // Обновление цвета предпросмотра
+        embedColorInput.addEventListener('input', updateColorPreview);
+
+        function updateColorPreview() {
+            const color = embedColorInput.value || '#F1C40F';
+            colorPreview.style.backgroundColor = color;
+        }
+
+        // Переключение вкладок
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const targetTab = this.getAttribute('data-tab');
+                
+                // Убираем активный класс у всех вкладок и контента
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // Добавляем активный класс текущей вкладке и соответствующему контенту
+                this.classList.add('active');
+                document.getElementById(targetTab).classList.add('active');
+            });
+        });
+
+        // Обновление предпросмотра
+        updatePreviewButton.addEventListener('click', updatePreview);
+
+        // Функция обновления предпросмотра
+        function updatePreview() {
+            const username = usernameInput.value || 'Webhook Bot';
+            const avatarUrl = avatarUrlInput.value || 'https://cdn.discordapp.com/embed/avatars/0.png';
+            const messageContent = messageContentInput.value || 'Сообщение не введено';
+            const embedEnabled = enableEmbedCheckbox.checked;
+            const embedColor = embedColorInput.value || '#F1C40F';
+            const embedTitle = embedTitleInput.value || '';
+            const embedDescription = embedDescriptionInput.value || '';
+            const embedUrl = embedUrlInput.value || '';
+            const embedFooter = embedFooterInput.value || '';
+            const field1NameValue = field1Name.value || '';
+            const field1ValueValue = field1Value.value || '';
+            const field2NameValue = field2Name.value || '';
+            const field2ValueValue = field2Value.value || '';
+            const enableTimestamp = enableTimestampCheckbox.checked;
+
+            let previewHTML = `
+                <div class="message-preview">
+                    <div class="message-header">
+                        <div class="avatar" style="background-color: ${stringToColor(username)};">
+                            ${username.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <div class="author">${escapeHtml(username)}</div>
+                            <div class="timestamp">${enableTimestamp ? 'Сегодня в ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</div>
+                        </div>
+                    </div>
+                    <div class="message-body">${formatMessageContent(messageContent)}</div>
+                </div>
+            `;
+
+            if (embedEnabled && (embedTitle || embedDescription || field1NameValue || field2NameValue)) {
+                previewHTML += `
+                    <div class="embed-preview">
+                        <div class="embed-color-bar" style="background-color: ${embedColor};"></div>
+                        ${embedTitle ? `<div class="embed-title">${embedUrl ? `<a href="${embedUrl}" style="color: inherit;">${escapeHtml(embedTitle)}</a>` : escapeHtml(embedTitle)}</div>` : ''}
+                        ${embedDescription ? `<div class="embed-description">${formatMessageContent(embedDescription)}</div>` : ''}
+                        
+                        ${(field1NameValue || field2NameValue) ? `
+                            <div class="embed-fields">
+                                ${field1NameValue ? `
+                                    <div class="embed-field">
+                                        <div class="embed-field-title">${escapeHtml(field1NameValue)}</div>
+                                        <div class="embed-field-value">${formatMessageContent(field1ValueValue)}</div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${field2NameValue ? `
+                                    <div class="embed-field">
+                                        <div class="embed-field-title">${escapeHtml(field2NameValue)}</div>
+                                        <div class="embed-field-value">${formatMessageContent(field2ValueValue)}</div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                        
+                        ${embedFooter ? `<div style="color: #72767d; font-size: 0.85rem; margin-top: 10px;">${escapeHtml(embedFooter)}</div>` : ''}
+                    </div>
+                `;
+            }
+
+            previewContent.innerHTML = previewHTML;
+        }
+
+        // Отправка сообщения
+        sendButton.addEventListener('click', async function() {
+            const webhookUrl = webhookUrlInput.value.trim();
+            if (!webhookUrl) {
+                showStatus('Пожалуйста, введите URL вебхука', 'error');
+                return;
+            }
+
+            if (!webhookUrl.startsWith('https://discord.com/api/webhooks/')) {
+                showStatus('Неверный формат URL вебхука', 'error');
+                return;
+            }
+
+            const messageData = buildMessageData();
+            const delay = parseInt(delaySlider.value) * 1000; // Конвертация в миллисекунды
+            const repeat = parseInt(repeatSlider.value);
+            const rateLimit = parseInt(rateLimitSlider.value) * 1000; // Конвертация в миллисекунды
+
+            sendButton.disabled = true;
+            sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
+
+            try {
+                if (delay > 0) {
+                    showStatus(`Отправка сообщения через ${delay/1000} секунд...`, 'info');
+                    await sleep(delay);
+                }
+
+                for (let i = 0; i < repeat; i++) {
+                    if (i > 0) {
+                        showStatus(`Отправка сообщения ${i+1} из ${repeat}...`, 'info');
+                        await sleep(rateLimit);
+                    }
+
+                    const response = await fetch(webhookUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(messageData)
+                    });
+
+                    if (response.ok) {
+                        showStatus(`Сообщение ${i+1} из ${repeat} успешно отправлено!`, 'success');
+                        updatePreview();
+                    } else {
+                        const errorText = await response.text();
+                        throw new Error(`Ошибка ${response.status}: ${errorText}`);
+                    }
+                }
+            } catch (error) {
+                showStatus(`Ошибка отправки: ${error.message}`, 'error');
+                console.error('Ошибка отправки сообщения:', error);
+            } finally {
+                sendButton.disabled = false;
+                sendButton.innerHTML = '<i class="fas fa-paper-plane"></i> Отправить сообщение';
+            }
+        });
+
+        // Тестирование вебхука
+        testButton.addEventListener('click', async function() {
+            const webhookUrl = webhookUrlInput.value.trim();
+            if (!webhookUrl) {
+                showStatus('Пожалуйста, введите URL вебхука', 'error');
+                return;
+            }
+
+            testButton.disabled = true;
+            testButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Тестирование...';
+
+            try {
+                const response = await fetch(webhookUrl);
+                if (response.status === 200 || response.status === 401) {
+                    showStatus('Вебхук действителен!', 'success');
+                } else {
+                    showStatus(`Вебхук вернул статус: ${response.status}`, 'warning');
+                }
+            } catch (error) {
+                showStatus('Не удалось проверить вебхук. Проверьте URL.', 'error');
+            } finally {
+                testButton.disabled = false;
+                testButton.innerHTML = '<i class="fas fa-vial"></i> Протестировать вебхук';
+            }
+        });
+
+        // Очистка всех полей
+        clearButton.addEventListener('click', function() {
+            if (confirm('Вы уверены, что хотите очистить все поля?')) {
+                messageContentInput.value = '';
+                usernameInput.value = 'Webhook Bot';
+                avatarUrlInput.value = '';
+                embedTitleInput.value = '';
+                embedDescriptionInput.value = '';
+                embedColorInput.value = '#F1C40F';
+                embedUrlInput.value = '';
+                embedFooterInput.value = '';
+                field1Name.value = '';
+                field1Value.value = '';
+                field2Name.value = '';
+                field2Value.value = '';
+                ttsCheckbox.checked = false;
+                enableTimestampCheckbox.checked = false;
+                disableMentionsCheckbox.checked = false;
+                delaySlider.value = 0;
+                repeatSlider.value = 1;
+                rateLimitSlider.value = 1;
+                updateSliderValues();
+                updateColorPreview();
+                updatePreview();
+                showStatus('Все поля очищены', 'success');
+            }
+        });
+
+        // Построение данных сообщения
+        function buildMessageData() {
+            const messageData = {
+                username: usernameInput.value || 'Webhook Bot',
+                content: messageContentInput.value || '',
+                tts: ttsCheckbox.checked,
+                allowed_mentions: disableMentionsCheckbox.checked ? { parse: [] } : undefined
+            };
+
+            // Добавляем аватар, если указан
+            if (avatarUrlInput.value.trim()) {
+                messageData.avatar_url = avatarUrlInput.value.trim();
+            }
+
+            // Добавляем эмбед, если включен
+            if (enableEmbedCheckbox.checked) {
+                const embed = {
+                    title: embedTitleInput.value || undefined,
+                    description: embedDescriptionInput.value || undefined,
+                    url: embedUrlInput.value || undefined,
+                    color: hexToDecimal(embedColorInput.value) || 0xF1C40F,
+                    footer: embedFooterInput.value ? { text: embedFooterInput.value } : undefined,
+                    timestamp: enableTimestampCheckbox.checked ? new Date().toISOString() : undefined
+                };
+
+                // Добавляем поля эмбеда, если они заполнены
+                const fields = [];
+                if (field1Name.value && field1Value.value) {
+                    fields.push({
+                        name: field1Name.value,
+                        value: field1Value.value,
+                        inline: true
+                    });
+                }
+                if (field2Name.value && field2Value.value) {
+                    fields.push({
+                        name: field2Name.value,
+                        value: field2Value.value,
+                        inline: true
+                    });
+                }
+                if (fields.length > 0) {
+                    embed.fields = fields;
+                }
+
+                // Удаляем undefined свойства
+                Object.keys(embed).forEach(key => embed[key] === undefined && delete embed[key]);
+                
+                messageData.embeds = [embed];
+            }
+
+            return messageData;
+        }
+
+        // Вспомогательные функции
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = 'status-message';
+            
+            if (type === 'success') {
+                statusMessage.classList.add('status-success');
+            } else if (type === 'error') {
+                statusMessage.classList.add('status-error');
+            } else {
+                statusMessage.style.display = 'block';
+                statusMessage.style.backgroundColor = 'rgba(153, 170, 181, 0.2)';
+                statusMessage.style.color = 'var(--gray)';
+                statusMessage.style.border = '1px solid var(--gray)';
+            }
+            
+            // Автоматически скрываем сообщение через 5 секунд
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function hexToDecimal(hex) {
+            if (!hex) return null;
+            const hexColor = hex.replace('#', '');
+            return parseInt(hexColor, 16);
+        }
+
+        function stringToColor(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            let color = '#';
+            for (let i = 0; i < 3; i++) {
+                const value = (hash >> (i * 8)) & 0xFF;
+                color += ('00' + value.toString(16)).substr(-2);
+            }
+            return color;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatMessageContent(content) {
+            // Простая замена символов новой строки на <br>
+            return escapeHtml(content).replace(/\n/g, '<br>');
+        }
+
+        // Автоматическое обновление предпросмотра при изменении полей
+        const inputsToWatch = [
+            messageContentInput, usernameInput, avatarUrlInput,
+            embedTitleInput, embedDescriptionInput, embedColorInput,
+            embedUrlInput, embedFooterInput, field1Name, field1Value,
+            field2Name, field2Value
+        ];
+
+        inputsToWatch.forEach(input => {
+            input.addEventListener('input', updatePreview);
+        });
+
+        enableEmbedCheckbox.addEventListener('change', updatePreview);
+        enableTimestampCheckbox.addEventListener('change', updatePreview);
+    </script>
+</body>
+</html>
